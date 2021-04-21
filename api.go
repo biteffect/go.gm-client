@@ -62,7 +62,7 @@ func Verify(service int, account string, attrs []GmAttribute) (*GmVerify, error)
 	return apiInst.Verify(service, account, attrs)
 }
 
-func Status(id int) (*GmStatus, error) {
+func Status(id string) (*GmStatus, error) {
 	if apiInst == nil {
 		return nil, errors.New(NoDefaultApiDefined)
 	}

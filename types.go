@@ -16,8 +16,8 @@ type GmVerify struct {
 }
 
 type GmPayment struct {
-	ID            int           `xml:"id,attr"`
-	Sum           int           `xml:"sum,attr"`
+	ID            string        `xml:"id,attr"`
+	Sum           int64         `xml:"sum,attr"`
 	Check         int           `xml:"check,attr"`
 	Service       int           `xml:"service,attr"`
 	Source        string        `xml:"source,attr"`
@@ -29,13 +29,25 @@ type GmPayment struct {
 }
 
 type GmStatus struct {
-	ID        int           `xml:"id,attr"`
-	State     int           `xml:"state,attr"`
-	Substate  int           `xml:"substate,attr"`
-	Code      int           `xml:"code,attr"`
-	Final     int           `xml:"final,attr"`
-	Trans     int           `xml:"trans,attr"`
-	Attribute []GmAttribute `xml:"attribute"`
+	ID         string        `xml:"id,attr"`
+	State      int           `xml:"state,attr"`
+	Substate   int           `xml:"substate,attr"`
+	Code       int           `xml:"code,attr"`
+	Final      int           `xml:"final,attr"`
+	Trans      string        `xml:"trans,attr"`
+	Attributes []GmAttribute `xml:"attribute"`
+}
+
+func (s *GmStatus) Attribute(key string) *GmAttribute {
+	if s.Attribute == nil {
+		return nil
+	}
+	for _, v := range s.Attributes {
+		if v.Name == key {
+			return &v
+		}
+	}
+	return nil
 }
 
 type GmAdvancedInput struct {

@@ -70,12 +70,12 @@ func (g *Client) Verify(service int, account string, attrs []GmAttribute) (*GmVe
 	return &resp.Result, nil
 }
 
-func (g *Client) Status(id int) (*GmStatus, error) {
+func (g *Client) Status(id string) (*GmStatus, error) {
 	req := struct {
 		XMLName xml.Name `xml:"request"`
 		Point   int      `xml:"point,attr"`
 		Status  struct {
-			ID int `xml:"id,attr"`
+			ID string `xml:"id,attr"`
 		} `xml:"status"`
 	}{
 		Point: g.point,
@@ -152,8 +152,6 @@ func (g *Client) callApi(request interface{}, response interface{}) error {
 		return err
 	}
 
-	fmt.Printf("GM SG callApi:\n%s\n", httpBody)
-
 	httpResp, err := g.client.Post(g.url.String(), "text/xml", bytes.NewReader(httpBody))
 	if err != nil {
 		return err
@@ -164,7 +162,6 @@ func (g *Client) callApi(request interface{}, response interface{}) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("GM SG response:\n%s\n", response)
 
 	if strings.HasPrefix(string(respBody), "<error>") {
 		v := struct {
