@@ -1,3 +1,5 @@
+github.com/biteffect/go.gm-fin v0.2.2 h1:A3XTXHed9dBk0vgixWbPKtY9mLWRlIET5F2ZlXsy9pg=
+github.com/biteffect/go.gm-fin v0.2.2/go.mod h1:y87z8cOAZmdzGE9cuurzpjlYR3TVghGn5QikLNHCpxs=
 github.com/fatih/structs v1.1.0/go.mod h1:9NiDSp5zOcgEDl+j00MP/WkGVPOlPRLejGD8Ga6PJ7M=
 github.com/nooize/go-assist v0.8.5 h1:hxnUQbiJoy2QRVi8P41dU9xyQz96duBNTJRtCyhvQQI=
 github.com/nooize/go-assist v0.8.5/go.mod h1:EefHblazXYJALAKXxCV9wG3uSsJZKRZNUIADBpERyXw=

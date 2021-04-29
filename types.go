@@ -1,8 +1,14 @@
 package gmapi
 
+import (
+	"errors"
+	"github.com/biteffect/go.gm-fin"
+	"strings"
+)
+
 type GmBalance struct {
-	Balance   int `xml:"balance,attr"`
-	Overdraft int `xml:"overdraft,attr"`
+	Balance   gmfin.Amount `xml:"balance,attr"`
+	Overdraft gmfin.Amount `xml:"overdraft,attr"`
 }
 
 type GmAttribute struct {
@@ -26,6 +32,14 @@ type GmPayment struct {
 	Delayed       int           `xml:"delayed,attr"`
 	TerminalVPSID string        `xml:"terminal-vps-id,attr"`
 	Attribute     []GmAttribute `xml:"attribute"`
+}
+
+func (p *GmPayment) Validate() error {
+	out := make([]string, 0)
+	if len(out) > 0 {
+		return errors.New(strings.Join(out, "; "))
+	}
+	return nil
 }
 
 type GmStatus struct {

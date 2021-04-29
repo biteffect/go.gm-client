@@ -73,6 +73,9 @@ func Payment(req *GmPayment) (*GmStatus, error) {
 	if apiInst == nil {
 		return nil, errors.New(NoDefaultApiDefined)
 	}
+	if err := req.Validate(); err != nil {
+		return nil, err
+	}
 	return apiInst.Payment(req)
 }
 

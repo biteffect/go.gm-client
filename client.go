@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"encoding/xml"
 	"fmt"
+	gmfin "github.com/biteffect/go.gm-fin"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -31,15 +32,20 @@ func (g *Client) Balance() (*GmBalance, error) {
 	}
 
 	resp := struct {
-		XMLName xml.Name  `xml:"response"`
-		Balance GmBalance `xml:"balance"`
+		XMLName xml.Name `xml:"response"`
+		Balance struct {
+			Balance   int `xml:"balance,attr"`
+			Overdraft int `xml:"overdraft,attr"`
+		} `xml:"balance"`
 	}{}
 
 	if err := g.callApi(&req, &resp); err != nil {
 		return nil, err
 	}
-
-	return &resp.Balance, nil
+	return &GmBalance{
+		Balance:   gmfin.AmountFromCents(resp.Balance.Balance),
+		Overdraft: gmfin.AmountFromCents(resp.Balance.Overdraft),
+	}, nil
 }
 
 func (g *Client) Verify(service int, account string, attrs []GmAttribute) (*GmVerify, error) {

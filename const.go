@@ -10,7 +10,7 @@ const (
 
 	DefaultGmApiUrl = "https://globalmoney.cash/external/extended-cert"
 
-	NoDefaultApiDefined = "Unable to call : no dafualt api define"
+	NoDefaultApiDefined = "Unable to call : no default api define"
 
 	GmApiSourceGate = "GATE"
 )
