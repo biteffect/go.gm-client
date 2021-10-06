@@ -3,6 +3,7 @@ package gmapi
 import (
 	"crypto/tls"
 	"errors"
+	"github.com/nooize/go-assist"
 	"github.com/nooize/go-assist/env"
 	"log"
 	"net/http"
@@ -20,14 +21,11 @@ func init() {
 	}
 
 	url := env.GetUrl(EnvKeyGmApiUrl, DefaultGmApiUrl) // DefaultGmApiUrl
-	cert, err := tls.LoadX509KeyPair(
-		env.GetStr(EnvKeyGmCertPath, ""),
-		env.GetStr(EnvKeyGmKeyPath, ""))
+	cert, err := assist.LoadPemCertificate(env.GetStr(EnvKeyGmCertPath, ""))
 	if err != nil {
-		log.Panicf("GM Api certificate eror : %s", err.Error())
+		log.Panicf("GM Api certificate load eror : %s", err.Error())
 	}
-
-	apiInst, _ = NewGmClient(*url, point, cert)
+	apiInst, _ = NewGmClient(*url, point, *cert)
 }
 
 // NewGmSG returns GM Server Gate Client
