@@ -7,9 +7,11 @@ import (
 	"fmt"
 	gmfin "github.com/biteffect/go.gm-fin"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 )
 
 // Client GM API client
@@ -22,7 +24,7 @@ type Client struct {
 
 // API client public methods
 // check balance
-func (g *Client) Balance() (*GmBalance, error) {
+func (g *Client) GetBalance() (*Balance, error) {
 	req := struct {
 		XMLName xml.Name `xml:"request"`
 		Point   int      `xml:"point,attr"`
@@ -42,31 +44,31 @@ func (g *Client) Balance() (*GmBalance, error) {
 	if err := g.callApi(&req, &resp); err != nil {
 		return nil, err
 	}
-	return &GmBalance{
-		Balance:   gmfin.AmountFromCents(resp.Balance.Balance),
+	return &Balance{
+		Amount:    gmfin.AmountFromCents(resp.Balance.Balance),
 		Overdraft: gmfin.AmountFromCents(resp.Balance.Overdraft),
 	}, nil
 }
 
-func (g *Client) Verify(service int, account string, attrs []GmAttribute) (*GmVerify, error) {
+func (g *Client) Verify(service int, account string, attrs []Attribute) (*VerifyStatus, error) {
 	req := struct {
 		XMLName xml.Name `xml:"request"`
 		Point   int      `xml:"point,attr"`
 		Verify  struct {
-			Service   int           `xml:"service,attr"`
-			Account   string        `xml:"account,attr"`
-			Attribute []GmAttribute `xml:"attribute"`
+			Service int    `xml:"service,attr"`
+			Account string `xml:"account,attr"`
+			withAttribute
 		} `xml:"verify"`
 	}{
 		Point: g.point,
 	}
 	req.Verify.Service = service
 	req.Verify.Account = account
-	req.Verify.Attribute = attrs
+	req.Verify.Attributes = attrs
 
 	resp := struct {
-		XMLName xml.Name `xml:"response"`
-		Result  GmVerify `xml:"result"`
+		XMLName xml.Name     `xml:"response"`
+		Result  VerifyStatus `xml:"result"`
 	}{}
 
 	if err := g.callApi(&req, &resp); err != nil {
@@ -76,7 +78,7 @@ func (g *Client) Verify(service int, account string, attrs []GmAttribute) (*GmVe
 	return &resp.Result, nil
 }
 
-func (g *Client) Status(id string) (*GmStatus, error) {
+func (g *Client) GetStatus(id string) (*Status, error) {
 	req := struct {
 		XMLName xml.Name `xml:"request"`
 		Point   int      `xml:"point,attr"`
@@ -90,16 +92,53 @@ func (g *Client) Status(id string) (*GmStatus, error) {
 
 	resp := struct {
 		XMLName xml.Name `xml:"response"`
-		Result  GmStatus `xml:"result"`
+		Result  Status   `xml:"result"`
 	}{}
 
 	if err := g.callApi(&req, &resp); err != nil {
 		return nil, err
 	}
+	if resp.Result.State == -2 {
+		return nil, nil
+	}
 	return &resp.Result, nil
 }
 
-func (g *Client) Payment(p *GmPayment) (*GmStatus, error) {
+func (g *Client) Payment(id string, service int, amount gmfin.Amount, account string, opt *PaymentOptions) (*Status, error) {
+
+	req := struct {
+		XMLName xml.Name  `xml:"request"`
+		Point   int       `xml:"point,attr"`
+		Payment gmPayment `xml:"payment"`
+	}{
+		Point: g.point,
+		Payment: gmPayment{
+			ID:      id,
+			Sum:     amount.InCents(),
+			Account: account,
+			Check:   1,
+			Service: service,
+			Source:  GmApiSourceGate,
+			Date:    time.Now().Format(gmTimeFormat),
+		},
+	}
+
+	opt.apply(&req.Payment)
+
+	resp := struct {
+		XMLName xml.Name `xml:"response"`
+		Result  Status   `xml:"result"`
+	}{}
+
+	if err := g.callApi(&req, &resp); err != nil {
+		return nil, err
+	}
+
+	return &resp.Result, nil
+}
+
+/*
+func (g *Client) Payment(p *Payment) (*Status, error) {
 	req := struct {
 		XMLName xml.Name  `xml:"request"`
 		Point   int       `xml:"point,attr"`
@@ -120,15 +159,16 @@ func (g *Client) Payment(p *GmPayment) (*GmStatus, error) {
 
 	return &resp.Result, nil
 }
+*/
 
-func (g *Client) Advanced(service int, fn string, attrs []GmAttribute) (*GmAdvanced, error) {
+func (g *Client) Advanced(service int, fn string, attrs []Attribute) (*GmAdvanced, error) {
 	req := struct {
 		XMLName  xml.Name `xml:"request"`
 		Point    int      `xml:"point,attr"`
 		Advanced struct {
-			Service   int           `xml:"service,attr"`
-			Function  string        `xml:"function,attr"`
-			Attribute []GmAttribute `xml:"attribute"`
+			Service   int         `xml:"service,attr"`
+			Function  string      `xml:"function,attr"`
+			Attribute []Attribute `xml:"attribute"`
 		} `xml:"advanced"`
 	}{
 		Point: g.point,
@@ -158,6 +198,9 @@ func (g *Client) callApi(request interface{}, response interface{}) error {
 		return err
 	}
 
+	log.Print("\n\n")
+	log.Print(string(httpBody))
+
 	httpResp, err := g.client.Post(g.url.String(), "text/xml", bytes.NewReader(httpBody))
 	if err != nil {
 		return err
@@ -168,6 +211,9 @@ func (g *Client) callApi(request interface{}, response interface{}) error {
 	if err != nil {
 		return err
 	}
+
+	log.Print("\n")
+	log.Print(string(respBody))
 
 	if strings.HasPrefix(string(respBody), "<error>") {
 		v := struct {

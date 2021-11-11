@@ -3,30 +3,11 @@ package gmapi
 import (
 	"crypto/tls"
 	"errors"
-	"github.com/nooize/go-assist"
-	"github.com/nooize/go-assist/env"
-	"log"
+	gmfin "github.com/biteffect/go.gm-fin"
 	"net/http"
 	"net/url"
 	"time"
 )
-
-// ClientInstance ClientInstance
-var apiInst *Client
-
-func init() {
-	point := env.GetInt(EnvKeyGmApiPoint, 0)
-	if point == 0 {
-		return
-	}
-
-	url := env.GetUrl(EnvKeyGmApiUrl, DefaultGmApiUrl) // DefaultGmApiUrl
-	cert, err := assist.LoadPemCertificate(env.GetStr(EnvKeyGmCertPath, ""))
-	if err != nil {
-		log.Panicf("GM Api certificate load eror : %s", err.Error())
-	}
-	apiInst, _ = NewGmClient(*url, point, *cert)
-}
 
 // NewGmSG returns GM Server Gate Client
 func NewGmClient(u url.URL, p int, cert tls.Certificate) (gmCl *Client, err error) {
@@ -46,40 +27,39 @@ func NewGmClient(u url.URL, p int, cert tls.Certificate) (gmCl *Client, err erro
 	return &out, nil
 }
 
-func Balance() (*GmBalance, error) {
+func GetBalance() (*Balance, error) {
 	if apiInst == nil {
 		return nil, errors.New(NoDefaultApiDefined)
 	}
-	return apiInst.Balance()
+	return apiInst.GetBalance()
 }
 
-func Verify(service int, account string, attrs []GmAttribute) (*GmVerify, error) {
+func Verify(service int, account string, attrs []Attribute) (*VerifyStatus, error) {
 	if apiInst == nil {
 		return nil, errors.New(NoDefaultApiDefined)
 	}
 	return apiInst.Verify(service, account, attrs)
 }
 
-func Status(id string) (*GmStatus, error) {
+func GetStatus(id string) (*Status, error) {
 	if apiInst == nil {
 		return nil, errors.New(NoDefaultApiDefined)
 	}
-	return apiInst.Status(id)
+	return apiInst.GetStatus(id)
 }
 
-func Payment(req *GmPayment) (*GmStatus, error) {
+func Payment(id string, service int, amount gmfin.Amount, account string, opt *PaymentOptions) (*Status, error) {
 	if apiInst == nil {
 		return nil, errors.New(NoDefaultApiDefined)
 	}
-	if err := req.Validate(); err != nil {
-		return nil, err
-	}
-	return apiInst.Payment(req)
+	return apiInst.Payment(id, service, amount, account, opt)
 }
 
+/*
 func Advanced(service int, fn string, attrs []GmAttribute) (*GmAdvanced, error) {
 	if apiInst == nil {
 		return nil, errors.New(NoDefaultApiDefined)
 	}
 	return apiInst.Advanced(service, fn, attrs)
 }
+*/
