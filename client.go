@@ -20,10 +20,17 @@ type Client struct {
 	point  int
 	client *http.Client
 	certs  *x509.CertPool
+	logger *log.Logger
 }
 
 // API client public methods
 // check balance
+func (g *Client) SetLogger(l *log.Logger) {
+	if g != nil {
+		g.logger = l
+	}
+}
+
 func (g *Client) GetBalance() (*Balance, error) {
 	req := struct {
 		XMLName xml.Name `xml:"request"`
@@ -198,8 +205,9 @@ func (g *Client) callApi(request interface{}, response interface{}) error {
 		return err
 	}
 
-	log.Print("\n\n")
-	log.Print(string(httpBody))
+	if apiInst.logger != nil {
+		apiInst.logger.Println(string(httpBody))
+	}
 
 	httpResp, err := g.client.Post(g.url.String(), "text/xml", bytes.NewReader(httpBody))
 	if err != nil {
@@ -212,8 +220,9 @@ func (g *Client) callApi(request interface{}, response interface{}) error {
 		return err
 	}
 
-	log.Print("\n")
-	log.Print(string(respBody))
+	if apiInst.logger != nil {
+		apiInst.logger.Println(string(respBody))
+	}
 
 	if strings.HasPrefix(string(respBody), "<error>") {
 		v := struct {

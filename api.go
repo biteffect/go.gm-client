@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"errors"
 	gmfin "github.com/biteffect/go.gm-fin"
+	"log"
 	"net/http"
 	"net/url"
 	"time"
@@ -25,6 +26,10 @@ func NewGmClient(u url.URL, p int, cert tls.Certificate) (gmCl *Client, err erro
 			}},
 	}
 	return &out, nil
+}
+
+func SetLogger(l *log.Logger) {
+	apiInst.SetLogger(l)
 }
 
 func GetBalance() (*Balance, error) {
