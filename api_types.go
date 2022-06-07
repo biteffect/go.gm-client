@@ -80,4 +80,12 @@ func (o *PaymentOptions) apply(p *gmPayment) {
 	} else {
 		p.Source = GmApiSourceGate
 	}
+	if o.Attribute != nil {
+		if p.Attribute == nil {
+			p.Attribute = make([]Attribute, 0)
+		}
+		for _, attr := range o.Attribute {
+			p.Attribute = append(p.Attribute, attr)
+		}
+	}
 }
