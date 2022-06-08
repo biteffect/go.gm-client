@@ -6,8 +6,8 @@ import (
 	"encoding/xml"
 	"fmt"
 	gmfin "github.com/biteffect/go.gm-fin"
+	"github.com/rs/zerolog"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -20,13 +20,13 @@ type Client struct {
 	point  int
 	client *http.Client
 	certs  *x509.CertPool
-	logger *log.Logger
+	logger *zerolog.Logger
 }
 
 // API client public methods
 // check balance
-func (g *Client) SetLogger(l *log.Logger) {
-	if g != nil {
+func (g *Client) SetLogger(l *zerolog.Logger) {
+	if g != nil && l != nil {
 		g.logger = l
 	}
 }
@@ -205,9 +205,7 @@ func (g *Client) callApi(request interface{}, response interface{}) error {
 		return err
 	}
 
-	if apiInst.logger != nil {
-		apiInst.logger.Println(string(httpBody))
-	}
+	apiInst.logger.Debug().Msgf("-> %s", httpBody)
 
 	httpResp, err := g.client.Post(g.url.String(), "text/xml", bytes.NewReader(httpBody))
 	if err != nil {
@@ -220,9 +218,7 @@ func (g *Client) callApi(request interface{}, response interface{}) error {
 		return err
 	}
 
-	if apiInst.logger != nil {
-		apiInst.logger.Println(string(respBody))
-	}
+	apiInst.logger.Debug().Msgf("<- %s", string(respBody))
 
 	if strings.HasPrefix(string(respBody), "<error>") {
 		v := struct {

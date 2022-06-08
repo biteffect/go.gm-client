@@ -4,9 +4,10 @@ import (
 	"crypto/tls"
 	"errors"
 	gmfin "github.com/biteffect/go.gm-fin"
-	"log"
+	"github.com/rs/zerolog"
 	"net/http"
 	"net/url"
+	"os"
 	"time"
 )
 
@@ -25,10 +26,12 @@ func NewGmClient(u url.URL, p int, cert tls.Certificate) (gmCl *Client, err erro
 				},
 			}},
 	}
+	logger := zerolog.New(os.Stdout).With().Timestamp().Logger().Level(zerolog.WarnLevel)
+	out.logger = &logger
 	return &out, nil
 }
 
-func SetLogger(l *log.Logger) {
+func SetLogger(l *zerolog.Logger) {
 	apiInst.SetLogger(l)
 }
 
