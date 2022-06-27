@@ -23,8 +23,7 @@ type Client struct {
 	logger *zerolog.Logger
 }
 
-// API client public methods
-// check balance
+// SetLogger set logger for dump all requests & responses
 func (g *Client) SetLogger(l *zerolog.Logger) {
 	if g != nil && l != nil {
 		g.logger = l
@@ -205,7 +204,9 @@ func (g *Client) callApi(request interface{}, response interface{}) error {
 		return err
 	}
 
-	apiInst.logger.Debug().Msgf("-> %s", httpBody)
+	if g.logger != nil {
+		g.logger.Debug().Msgf("-> %s", httpBody)
+	}
 
 	httpResp, err := g.client.Post(g.url.String(), "text/xml", bytes.NewReader(httpBody))
 	if err != nil {
@@ -218,7 +219,9 @@ func (g *Client) callApi(request interface{}, response interface{}) error {
 		return err
 	}
 
-	apiInst.logger.Debug().Msgf("<- %s", string(respBody))
+	if g.logger != nil {
+		g.logger.Debug().Msgf("<- %s", string(respBody))
+	}
 
 	if strings.HasPrefix(string(respBody), "<error>") {
 		v := struct {
