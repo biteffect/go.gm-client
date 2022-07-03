@@ -6,7 +6,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	gmfin "github.com/biteffect/go.gm-fin"
-	"github.com/rs/zerolog"
+	"github.com/nooize/go-logz"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -20,11 +20,11 @@ type Client struct {
 	point  int
 	client *http.Client
 	certs  *x509.CertPool
-	logger *zerolog.Logger
+	logger logz.Logger
 }
 
 // SetLogger set logger for dump all requests & responses
-func (g *Client) SetLogger(l *zerolog.Logger) {
+func (g *Client) SetLogger(l logz.Logger) {
 	if g != nil && l != nil {
 		g.logger = l
 	}
@@ -199,16 +199,18 @@ func (g *Client) Advanced(service int, fn string, attrs []Attribute) (*GmAdvance
 
 func (g *Client) callApi(request interface{}, response interface{}) error {
 
-	httpBody, err := xml.Marshal(request)
+	callBody, err := xml.Marshal(request)
 	if err != nil {
 		return err
 	}
 
-	if g.logger != nil {
-		g.logger.Debug().Msgf("-> %s", httpBody)
-	}
+	defer func(v string) {
+		if g.logger != nil {
+			go g.logger.Debug().Send(v)
+		}
+	}(string(callBody))
 
-	httpResp, err := g.client.Post(g.url.String(), "text/xml", bytes.NewReader(httpBody))
+	httpResp, err := g.client.Post(g.url.String(), "text/xml", bytes.NewReader(callBody))
 	if err != nil {
 		return err
 	}
@@ -219,9 +221,8 @@ func (g *Client) callApi(request interface{}, response interface{}) error {
 		return err
 	}
 
-	if g.logger != nil {
-		g.logger.Debug().Msgf("<- %s", string(respBody))
-	}
+	callBody = append(callBody, []byte("\n\n")...)
+	callBody = append(callBody, respBody...)
 
 	if strings.HasPrefix(string(respBody), "<error>") {
 		v := struct {
