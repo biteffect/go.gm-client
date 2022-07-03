@@ -1,5 +1,8 @@
 package gmapi
 
+// ApiLogger handler to log all request / response messages
+type ApiLogger func(string, string) error
+
 type GmAdvancedInput struct {
 	Key        string `xml:"key,attr"`
 	Title      string `xml:"title,attr"`

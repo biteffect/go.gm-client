@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"errors"
 	gmfin "github.com/biteffect/go.gm-fin"
-	"github.com/nooize/go-logz"
 	"net/http"
 	"net/url"
 	"time"
@@ -28,7 +27,7 @@ func NewGmClient(u url.URL, p int, cert tls.Certificate) (gmCl *Client, err erro
 	return &out, nil
 }
 
-func SetLogger(l logz.Logger) {
+func SetLogger(l ApiLogger) {
 	apiInst.SetLogger(l)
 }
 

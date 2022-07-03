@@ -6,7 +6,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	gmfin "github.com/biteffect/go.gm-fin"
-	"github.com/nooize/go-logz"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -20,11 +19,11 @@ type Client struct {
 	point  int
 	client *http.Client
 	certs  *x509.CertPool
-	logger logz.Logger
+	logger ApiLogger
 }
 
 // SetLogger set logger for dump all requests & responses
-func (g *Client) SetLogger(l logz.Logger) {
+func (g *Client) SetLogger(l ApiLogger) {
 	if g != nil && l != nil {
 		g.logger = l
 	}
@@ -199,44 +198,42 @@ func (g *Client) Advanced(service int, fn string, attrs []Attribute) (*GmAdvance
 
 func (g *Client) callApi(request interface{}, response interface{}) error {
 
-	callBody, err := xml.Marshal(request)
+	resBody := make([]byte, 0)
+	reqBody, err := xml.Marshal(request)
 	if err != nil {
 		return err
 	}
 
-	defer func(v string) {
+	defer func(req, res string) {
 		if g.logger != nil {
-			go g.logger.Debug().Send(v)
+			go g.logger(req, res)
 		}
-	}(string(callBody))
+	}(string(reqBody), string(resBody))
 
-	httpResp, err := g.client.Post(g.url.String(), "text/xml", bytes.NewReader(callBody))
+	httpResp, err := g.client.Post(g.url.String(), "text/xml", bytes.NewReader(reqBody))
 	if err != nil {
 		return err
 	}
 	defer httpResp.Body.Close()
 
-	respBody, err := ioutil.ReadAll(httpResp.Body)
+	resBody, err = ioutil.ReadAll(httpResp.Body)
 	if err != nil {
 		return err
 	}
 
-	callBody = append(callBody, []byte("\n\n")...)
-	callBody = append(callBody, respBody...)
-
-	if strings.HasPrefix(string(respBody), "<error>") {
+	if strings.HasPrefix(string(resBody), "<error>") {
 		v := struct {
 			XMLName xml.Name `xml:"error"`
 			Error   string   `xml:",chardata"`
 		}{}
-		err = xml.Unmarshal([]byte(respBody), &v)
+		err = xml.Unmarshal(resBody, &v)
 		if err != nil {
 			return err
 		}
 		return fmt.Errorf("GM SG error: %s", v.Error)
 	}
 
-	err = xml.Unmarshal(respBody, response)
+	err = xml.Unmarshal(resBody, response)
 	if err != nil {
 		return err
 	}
