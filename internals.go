@@ -43,7 +43,7 @@ func init() {
 	url := env.GetUrl(EnvKeyGmApiUrl, DefaultGmApiUrl) // DefaultGmApiUrl
 	cert, err := assist.LoadPemCertificate(env.GetStr(EnvKeyGmCertPath, ""))
 	if err != nil {
-		log.Panicf("GM Api certificate load eror : %s", err.Error())
+		log.Panicf("GM Client certificate load eror : %s", err.Error())
 	}
 	apiInst, _ = NewGmClient(*url, point, *cert)
 }

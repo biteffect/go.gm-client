@@ -3,7 +3,7 @@ package gmapi
 import (
 	"crypto/tls"
 	"errors"
-	gmfin "github.com/biteffect/go.gm-fin"
+	"github.com/biteffect/go.gm-fin"
 	"net/http"
 	"net/url"
 	"time"

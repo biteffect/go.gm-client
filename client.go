@@ -5,7 +5,7 @@ import (
 	"crypto/x509"
 	"encoding/xml"
 	"fmt"
-	gmfin "github.com/biteffect/go.gm-fin"
+	"github.com/biteffect/go.gm-fin"
 	"io/ioutil"
 	"net/http"
 	"net/url"
