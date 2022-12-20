@@ -40,17 +40,17 @@ type Status struct {
 	withAttribute
 }
 
-func (s *Status) IsFinal() bool {
+func (s Status) IsFinal() bool {
 	return s.State == StatusSuccess ||
 		s.State == StatusError ||
 		s.State == -2
 }
 
-func (s *Status) IsSuccess() bool {
+func (s Status) IsSuccess() bool {
 	return s.State == StatusSuccess
 }
 
-func (s *Status) IsError() bool {
+func (s Status) IsError() bool {
 	return s.State == StatusError
 }
 
@@ -59,7 +59,7 @@ type VerifyStatus struct {
 	withAttribute
 }
 
-func (s *VerifyStatus) IsOk() bool {
+func (s VerifyStatus) IsOk() bool {
 	return s.Code == 0
 }
 
