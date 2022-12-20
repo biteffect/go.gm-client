@@ -204,11 +204,11 @@ func (g *Client) callApi(request interface{}, response interface{}) error {
 		return err
 	}
 
-	defer func(req, res string) {
+	defer func() {
 		if g.logger != nil {
-			go g.logger(req, res)
+			go g.logger(string(reqBody), resBody)
 		}
-	}(string(reqBody), resBody)
+	}()
 
 	httpResp, err := g.client.Post(g.url.String(), "text/xml", bytes.NewReader(reqBody))
 	if err != nil {
