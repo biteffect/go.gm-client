@@ -6,7 +6,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"github.com/biteffect/go.gm-fin"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -198,7 +198,7 @@ func (g *Client) Advanced(service int, fn string, attrs []Attribute) (*GmAdvance
 
 func (g *Client) callApi(request interface{}, response interface{}) error {
 
-	resBody := make([]byte, 0)
+	resBody := ""
 	reqBody, err := xml.Marshal(request)
 	if err != nil {
 		return err
@@ -208,7 +208,7 @@ func (g *Client) callApi(request interface{}, response interface{}) error {
 		if g.logger != nil {
 			go g.logger(req, res)
 		}
-	}(string(reqBody), string(resBody))
+	}(string(reqBody), resBody)
 
 	httpResp, err := g.client.Post(g.url.String(), "text/xml", bytes.NewReader(reqBody))
 	if err != nil {
@@ -216,24 +216,25 @@ func (g *Client) callApi(request interface{}, response interface{}) error {
 	}
 	defer httpResp.Body.Close()
 
-	resBody, err = ioutil.ReadAll(httpResp.Body)
+	rawRes, err := io.ReadAll(httpResp.Body)
 	if err != nil {
 		return err
 	}
+	resBody = string(rawRes)
 
 	if strings.HasPrefix(string(resBody), "<error>") {
 		v := struct {
 			XMLName xml.Name `xml:"error"`
 			Error   string   `xml:",chardata"`
 		}{}
-		err = xml.Unmarshal(resBody, &v)
+		err = xml.Unmarshal(rawRes, &v)
 		if err != nil {
 			return err
 		}
 		return fmt.Errorf("GM SG error: %s", v.Error)
 	}
 
-	err = xml.Unmarshal(resBody, response)
+	err = xml.Unmarshal(rawRes, response)
 	if err != nil {
 		return err
 	}
