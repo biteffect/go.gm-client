@@ -34,7 +34,7 @@ type Status struct {
 	ID       string `xml:"id,attr"`
 	State    int    `xml:"state,attr"`
 	Substate int    `xml:"substate,attr"`
-	Sode     int    `xml:"code,attr"`
+	Code     int    `xml:"code,attr"`
 	Final    int    `xml:"final,attr"`
 	Trans    string `xml:"trans,attr"`
 	withAttribute
